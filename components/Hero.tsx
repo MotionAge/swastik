@@ -17,7 +17,7 @@ export default function Hero() {
         </video>
 
         {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-green-900/80 via-lime-900/70 to-green-800/80"></div>
+        {/* <div className="absolute inset-0 bg-gradient-to-r from-green-900/80 via-lime-900/70 to-green-800/80"></div> */}
 
         {/* Scroll Indicator */}
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10">

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Plus, Trash2, Download } from "lucide-react"
+import FileUpload from "./FileUpload"
 
 interface Notice {
   id: string
@@ -19,10 +20,11 @@ interface Notice {
 export default function NoticeManager() {
   const [notices, setNotices] = useState<Notice[]>([])
   const [isAdding, setIsAdding] = useState(false)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [isUploading, setIsUploading] = useState(false)
   const [formData, setFormData] = useState({
     title: "",
     type: "image" as "image" | "pdf",
-    url: "",
   })
 
   useEffect(() => {
@@ -39,14 +41,44 @@ export default function NoticeManager() {
     }
   }
 
+  const uploadFile = async (file: File): Promise<string> => {
+    const formData = new FormData()
+    formData.append("file", file)
+    formData.append("type", file.type.includes("pdf") ? "pdf" : "image")
+
+    const response = await fetch("/api/admin/upload", {
+      method: "POST",
+      body: formData,
+    })
+
+    if (!response.ok) {
+      throw new Error("Failed to upload file")
+    }
+
+    const data = await response.json()
+    return data.url
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    if (!selectedFile) {
+      alert("Please select a file")
+      return
+    }
+
+    setIsUploading(true)
+
     try {
+      const fileUrl = await uploadFile(selectedFile)
+
       const response = await fetch("/api/admin/notices", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          url: fileUrl,
+        }),
       })
 
       if (response.ok) {
@@ -55,6 +87,9 @@ export default function NoticeManager() {
       }
     } catch (error) {
       console.error("Error saving notice:", error)
+      alert("Error saving notice. Please try again.")
+    } finally {
+      setIsUploading(false)
     }
   }
 
@@ -70,7 +105,8 @@ export default function NoticeManager() {
   }
 
   const resetForm = () => {
-    setFormData({ title: "", type: "image", url: "" })
+    setFormData({ title: "", type: "image" })
+    setSelectedFile(null)
     setIsAdding(false)
   }
 
@@ -107,15 +143,17 @@ export default function NoticeManager() {
                 <option value="pdf">PDF Document</option>
               </select>
 
-              <Input
-                placeholder="File URL"
-                value={formData.url}
-                onChange={(e) => setFormData((prev) => ({ ...prev, url: e.target.value }))}
-                required
+              <FileUpload
+                onFileSelect={setSelectedFile}
+                accept={formData.type === "pdf" ? ".pdf" : "image/*"}
+                maxSize={10}
+                label={`Upload ${formData.type === "pdf" ? "PDF" : "Image"}`}
               />
 
               <div className="flex gap-2">
-                <Button type="submit">Create Notice</Button>
+                <Button type="submit" disabled={isUploading || !selectedFile}>
+                  {isUploading ? "Uploading..." : "Create Notice"}
+                </Button>
                 <Button type="button" variant="outline" onClick={resetForm}>
                   Cancel
                 </Button>

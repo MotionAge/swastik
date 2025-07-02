@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Plus, Edit, Trash2 } from "lucide-react"
+import FileUpload from "./FileUpload"
 
 interface Post {
   id: string
@@ -25,11 +26,12 @@ export default function PostManager() {
   const [posts, setPosts] = useState<Post[]>([])
   const [isEditing, setIsEditing] = useState(false)
   const [editingPost, setEditingPost] = useState<Post | null>(null)
+  const [selectedImage, setSelectedImage] = useState<File | null>(null)
+  const [isUploading, setIsUploading] = useState(false)
   const [formData, setFormData] = useState({
     title: "",
     summary: "",
     content: "",
-    image: "",
     category: "News",
     author: "Admin",
   })
@@ -48,17 +50,46 @@ export default function PostManager() {
     }
   }
 
+  const uploadFile = async (file: File): Promise<string> => {
+    const formData = new FormData()
+    formData.append("file", file)
+    formData.append("type", "image")
+
+    const response = await fetch("/api/admin/upload", {
+      method: "POST",
+      body: formData,
+    })
+
+    if (!response.ok) {
+      throw new Error("Failed to upload file")
+    }
+
+    const data = await response.json()
+    return data.url
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setIsUploading(true)
 
     try {
+      let imageUrl = editingPost?.image || ""
+
+      // Upload image if selected
+      if (selectedImage) {
+        imageUrl = await uploadFile(selectedImage)
+      }
+
       const url = editingPost ? `/api/admin/posts/${editingPost.id}` : "/api/admin/posts"
       const method = editingPost ? "PUT" : "POST"
 
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          image: imageUrl,
+        }),
       })
 
       if (response.ok) {
@@ -67,6 +98,9 @@ export default function PostManager() {
       }
     } catch (error) {
       console.error("Error saving post:", error)
+      alert("Error saving post. Please try again.")
+    } finally {
+      setIsUploading(false)
     }
   }
 
@@ -76,7 +110,6 @@ export default function PostManager() {
       title: post.title,
       summary: post.summary,
       content: post.content,
-      image: post.image || "",
       category: post.category,
       author: post.author,
     })
@@ -99,11 +132,11 @@ export default function PostManager() {
       title: "",
       summary: "",
       content: "",
-      image: "",
       category: "News",
       author: "Admin",
     })
     setEditingPost(null)
+    setSelectedImage(null)
     setIsEditing(false)
   }
 
@@ -146,10 +179,12 @@ export default function PostManager() {
                 required
               />
 
-              <Input
-                placeholder="Image URL"
-                value={formData.image}
-                onChange={(e) => setFormData((prev) => ({ ...prev, image: e.target.value }))}
+              <FileUpload
+                onFileSelect={setSelectedImage}
+                accept="image/*"
+                maxSize={5}
+                currentFile={editingPost?.image}
+                label="Post Image"
               />
 
               <select
@@ -164,7 +199,9 @@ export default function PostManager() {
               </select>
 
               <div className="flex gap-2">
-                <Button type="submit">{editingPost ? "Update Post" : "Create Post"}</Button>
+                <Button type="submit" disabled={isUploading}>
+                  {isUploading ? "Saving..." : editingPost ? "Update Post" : "Create Post"}
+                </Button>
                 <Button type="button" variant="outline" onClick={resetForm}>
                   Cancel
                 </Button>

@@ -1,3 +1,4 @@
+import React from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { formatDate } from "@/lib/utils"
@@ -41,12 +42,14 @@ export default function PostGrid({ posts }: PostGridProps) {
 
           <div className="p-6">
             <div className="flex items-center justify-between text-sm text-gray-500 mb-2">
-              <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">{post.category}</span>
+              <span className="bg-emerald-100 text-emerald-800 px-2 py-1 rounded text-xs font-medium">
+                {post.category}
+              </span>
               <span>{formatDate(post.date)}</span>
             </div>
 
             <h3 className="text-xl font-semibold mb-3 line-clamp-2">
-              <Link href={`/media/${post.slug}`} className="hover:text-blue-600 transition-colors">
+              <Link href={`/media/${post.slug}`} className="hover:text-emerald-600 transition-colors">
                 {post.title}
               </Link>
             </h3>
@@ -55,7 +58,10 @@ export default function PostGrid({ posts }: PostGridProps) {
 
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-500">By {post.author}</span>
-              <Link href={`/media/${post.slug}`} className="text-blue-600 hover:text-blue-800 font-medium text-sm">
+              <Link
+                href={`/media/${post.slug}`}
+                className="text-emerald-600 hover:text-emerald-800 font-medium text-sm"
+              >
                 Read More →
               </Link>
             </div>

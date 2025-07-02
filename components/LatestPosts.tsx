@@ -31,7 +31,7 @@ export default function LatestPosts({ posts }: LatestPostsProps) {
           </div>
           <Link
             href="/media"
-            className="group hidden md:inline-flex items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-full hover:bg-blue-700 transition-all duration-300 hover:scale-105 shadow-lg"
+            className="group hidden md:inline-flex items-center px-6 py-3 bg-emerald-600 text-white font-semibold rounded-full hover:bg-emerald-700 transition-all duration-300 hover:scale-105 shadow-lg"
           >
             View All
             <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
@@ -62,7 +62,7 @@ export default function LatestPosts({ posts }: LatestPostsProps) {
                 <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
                   <div className="flex items-center">
                     <Tag className="h-4 w-4 mr-1" />
-                    <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-medium">
+                    <span className="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-xs font-medium">
                       {post.category}
                     </span>
                   </div>
@@ -72,7 +72,7 @@ export default function LatestPosts({ posts }: LatestPostsProps) {
                   </div>
                 </div>
 
-                <h3 className="text-xl lg:text-2xl font-bold mb-4 line-clamp-2 group-hover:text-blue-600 transition-colors duration-300">
+                <h3 className="text-xl lg:text-2xl font-bold mb-4 line-clamp-2 group-hover:text-emerald-600 transition-colors duration-300">
                   {post.title}
                 </h3>
 
@@ -87,7 +87,7 @@ export default function LatestPosts({ posts }: LatestPostsProps) {
                   )}
                   <Link
                     href={`/media/${post.slug}`}
-                    className="group/link inline-flex items-center text-blue-600 hover:text-blue-800 font-semibold transition-colors duration-300"
+                    className="group/link inline-flex items-center text-emerald-600 hover:text-emerald-800 font-semibold transition-colors duration-300"
                   >
                     Read More
                     <ArrowRight className="ml-2 h-4 w-4 group-hover/link:translate-x-1 transition-transform duration-300" />
@@ -101,7 +101,7 @@ export default function LatestPosts({ posts }: LatestPostsProps) {
         <div className="text-center mt-12 md:hidden">
           <Link
             href="/media"
-            className="inline-flex items-center px-8 py-4 bg-blue-600 text-white font-semibold rounded-full hover:bg-blue-700 transition-all duration-300 hover:scale-105 shadow-lg"
+            className="inline-flex items-center px-8 py-4 bg-emerald-600 text-white font-semibold rounded-full hover:bg-emerald-700 transition-all duration-300 hover:scale-105 shadow-lg"
           >
             View All Posts
             <ArrowRight className="ml-2 h-5 w-5" />

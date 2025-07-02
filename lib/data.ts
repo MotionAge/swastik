@@ -52,19 +52,19 @@ export async function getGalleryImages() {
     return [
       {
         id: "1",
-        url: "https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=800&h=400&fit=crop",
+        url: "/placeholder.svg?height=400&width=600",
         alt: "Company building",
         caption: "Our modern headquarters",
       },
       {
         id: "2",
-        url: "https://images.unsplash.com/photo-1493397212122-2b85dda8106b?w=800&h=400&fit=crop",
+        url: "/placeholder.svg?height=400&width=600",
         alt: "Team meeting",
         caption: "Collaborative workspace",
       },
       {
         id: "3",
-        url: "https://images.unsplash.com/photo-1500673922987-e212871fec22?w=800&h=400&fit=crop",
+        url: "/placeholder.svg?height=400&width=600",
         alt: "Office interior",
         caption: "Innovation center",
       },
@@ -94,4 +94,13 @@ export async function getJobListings() {
     console.error("Error reading jobs:", error)
     return []
   }
+}
+
+export async function getAllJobs() {
+  return await getJobListings()
+}
+
+export async function getJobById(id: string) {
+  const jobs = await getAllJobs()
+  return jobs.find((job: any) => job.id === id)
 }

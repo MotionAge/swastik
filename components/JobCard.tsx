@@ -1,4 +1,5 @@
 import { MapPin, Clock, DollarSign, Calendar } from "lucide-react"
+import Link from "next/link"
 
 interface Job {
   id: string
@@ -47,7 +48,7 @@ export default function JobCard({ job }: JobCardProps) {
           )}
         </div>
 
-        <p className="text-gray-700 mb-6 leading-relaxed">{job.description}</p>
+        <p className="text-gray-700 mb-6 leading-relaxed line-clamp-3">{job.description}</p>
 
         <div className="mb-6">
           <h4 className="font-semibold text-gray-900 mb-3">Key Requirements:</h4>
@@ -70,12 +71,16 @@ export default function JobCard({ job }: JobCardProps) {
             Posted {new Date(job.posted).toLocaleDateString()}
           </div>
           <div className="flex gap-3">
-            <button className="px-6 py-3 border border-purple-600 text-purple-600 font-semibold rounded-full hover:bg-purple-50 transition-colors">
-              Learn More
-            </button>
-            <button className="px-6 py-3 bg-purple-600 text-white font-semibold rounded-full hover:bg-purple-700 transition-colors shadow-lg">
-              Apply Now
-            </button>
+            <Link href={`/careers/${job.id}`}>
+              <button className="px-6 py-3 border border-purple-600 text-purple-600 font-semibold rounded-full hover:bg-purple-50 transition-colors">
+                Learn More
+              </button>
+            </Link>
+            <Link href={`/careers/${job.id}#apply-form`}>
+              <button className="px-6 py-3 bg-purple-600 text-white font-semibold rounded-full hover:bg-purple-700 transition-colors shadow-lg">
+                Apply Now
+              </button>
+            </Link>
           </div>
         </div>
       </div>

@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Plus, Trash2 } from "lucide-react"
 import Image from "next/image"
+import FileUpload from "./FileUpload"
 
 interface GalleryImage {
   id: string
@@ -19,8 +20,9 @@ interface GalleryImage {
 export default function GalleryManager() {
   const [images, setImages] = useState<GalleryImage[]>([])
   const [isAdding, setIsAdding] = useState(false)
+  const [selectedImage, setSelectedImage] = useState<File | null>(null)
+  const [isUploading, setIsUploading] = useState(false)
   const [formData, setFormData] = useState({
-    url: "",
     alt: "",
     caption: "",
   })
@@ -39,14 +41,44 @@ export default function GalleryManager() {
     }
   }
 
+  const uploadFile = async (file: File): Promise<string> => {
+    const formData = new FormData()
+    formData.append("file", file)
+    formData.append("type", "image")
+
+    const response = await fetch("/api/admin/upload", {
+      method: "POST",
+      body: formData,
+    })
+
+    if (!response.ok) {
+      throw new Error("Failed to upload file")
+    }
+
+    const data = await response.json()
+    return data.url
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    if (!selectedImage) {
+      alert("Please select an image")
+      return
+    }
+
+    setIsUploading(true)
+
     try {
+      const imageUrl = await uploadFile(selectedImage)
+
       const response = await fetch("/api/admin/gallery", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          url: imageUrl,
+        }),
       })
 
       if (response.ok) {
@@ -55,6 +87,9 @@ export default function GalleryManager() {
       }
     } catch (error) {
       console.error("Error saving image:", error)
+      alert("Error saving image. Please try again.")
+    } finally {
+      setIsUploading(false)
     }
   }
 
@@ -70,7 +105,8 @@ export default function GalleryManager() {
   }
 
   const resetForm = () => {
-    setFormData({ url: "", alt: "", caption: "" })
+    setFormData({ alt: "", caption: "" })
+    setSelectedImage(null)
     setIsAdding(false)
   }
 
@@ -91,12 +127,7 @@ export default function GalleryManager() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <Input
-                placeholder="Image URL"
-                value={formData.url}
-                onChange={(e) => setFormData((prev) => ({ ...prev, url: e.target.value }))}
-                required
-              />
+              <FileUpload onFileSelect={setSelectedImage} accept="image/*" maxSize={5} label="Gallery Image" />
 
               <Input
                 placeholder="Alt Text"
@@ -112,7 +143,9 @@ export default function GalleryManager() {
               />
 
               <div className="flex gap-2">
-                <Button type="submit">Add Image</Button>
+                <Button type="submit" disabled={isUploading || !selectedImage}>
+                  {isUploading ? "Uploading..." : "Add Image"}
+                </Button>
                 <Button type="button" variant="outline" onClick={resetForm}>
                   Cancel
                 </Button>

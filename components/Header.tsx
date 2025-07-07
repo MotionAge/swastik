@@ -17,7 +17,7 @@ export default function Header() {
   ]
 
   return (
-    <header className="bg-white shadow-sm">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white shadow-sm">
       <nav className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -26,7 +26,7 @@ export default function Header() {
               <Image
                 src="/logob.png"
                 alt="Company Logo"
-                width={140} 
+                width={140}
                 height={40}
                 className="h-10 w-auto"
                 priority
@@ -51,7 +51,10 @@ export default function Header() {
 
           {/* Mobile Menu Button */}
           <div className="md:hidden">
-            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-gray-700 hover:text-emerald-600 p-2">
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="text-gray-700 hover:text-emerald-600 p-2"
+            >
               {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
           </div>

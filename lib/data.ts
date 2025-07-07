@@ -21,7 +21,12 @@ export async function getLatestPosts(limit = 3) {
       .limit(limit)
 
     if (error) throw error
-    return data || []
+
+    // Normalize image field
+    return (data || []).map((post) => ({
+      ...post,
+      image: post.image || post.image_url || null, // normalize image
+    }))
   } catch (error) {
     console.error("Error reading posts:", error)
     return []
@@ -45,7 +50,14 @@ export async function getNotices() {
     const { data, error } = await supabase.from("notices").select("*").order("created_at", { ascending: false })
 
     if (error) throw error
-    return data || []
+
+    // Transform data to match expected format
+    return (
+      data?.map((notice) => ({
+        ...notice,
+        date: notice.created_at,
+      })) || []
+    )
   } catch (error) {
     console.error("Error reading notices:", error)
     return []
@@ -54,7 +66,7 @@ export async function getNotices() {
 
 export async function getGalleryImages() {
   try {
-    const { data, error } = await supabase.from("gallery_images").select("*").order("created_at", { ascending: false })
+    const { data, error } = await supabase.from("gallery_items").select("*").order("created_at", { ascending: false })
 
     if (error) throw error
 
@@ -65,6 +77,7 @@ export async function getGalleryImages() {
         url: img.url,
         alt: img.alt_text,
         caption: img.caption,
+        file_type: img.file_type || "image",
       })) || []
     )
   } catch (error) {
@@ -75,18 +88,21 @@ export async function getGalleryImages() {
         url: "/placeholder.svg?height=400&width=600",
         alt: "Company building",
         caption: "Our modern headquarters",
+        file_type: "image",
       },
       {
         id: "2",
         url: "/placeholder.svg?height=400&width=600",
         alt: "Team meeting",
         caption: "Collaborative workspace",
+        file_type: "image",
       },
       {
         id: "3",
         url: "/placeholder.svg?height=400&width=600",
         alt: "Office interior",
         caption: "Innovation center",
+        file_type: "image",
       },
     ]
   }

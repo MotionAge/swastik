@@ -9,7 +9,7 @@ interface Notice {
   title: string
   type: "image" | "pdf"
   url: string
-  date: string
+  created_at: string
 }
 
 interface NoticeModalProps {
@@ -39,6 +39,8 @@ export default function NoticeModal({ notice }: NoticeModalProps) {
     }
   }, [isOpen])
 
+  if (!notice || !notice.url) return null
+
   if (!isOpen) return null
 
   return (
@@ -66,7 +68,7 @@ export default function NoticeModal({ notice }: NoticeModalProps) {
           )}
 
           <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-500">Posted: {new Date(notice.date).toLocaleDateString()}</span>
+            <span className="text-sm text-gray-500">Posted: {new Date(notice.created_at).toLocaleDateString()}</span>
 
             <a
               href={notice.url}

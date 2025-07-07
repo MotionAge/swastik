@@ -165,7 +165,6 @@ export default function PostManager() {
                 onFileSelect={setSelectedImage}
                 accept="image/*"
                 maxSize={5}
-                currentFile={editingPost?.image_url}
                 label="Post Image"
               />
 

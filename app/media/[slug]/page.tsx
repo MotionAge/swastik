@@ -27,12 +27,24 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   }
 }
 
+type Attachment = {
+  name: string
+  url: string
+}
+
 export default async function PostPage({ params }: { params: { slug: string } }) {
   const post = await getPostBySlug(params.slug)
 
   if (!post) {
     notFound()
   }
+
+  // ✅ Use image_url instead of image
+  const imageUrl = post.image_url
+    ? post.image_url.startsWith("http") || post.image_url.startsWith("/")
+      ? post.image_url
+      : `/${post.image_url}`
+    : "/placeholder.svg"
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -48,7 +60,7 @@ export default async function PostPage({ params }: { params: { slug: string } })
           <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-6">
             <div className="flex items-center">
               <Calendar className="w-4 h-4 mr-1" />
-              {formatDate(post.date)}
+              {formatDate(post.created_at)}
             </div>
             <div className="flex items-center">
               <User className="w-4 h-4 mr-1" />
@@ -60,9 +72,15 @@ export default async function PostPage({ params }: { params: { slug: string } })
             </div>
           </div>
 
-          {post.image && (
+          {imageUrl && (
             <div className="relative h-96 mb-8 rounded-lg overflow-hidden">
-              <Image src={post.image || "/placeholder.svg"} alt={post.title} fill className="object-cover" />
+              <Image
+                src={imageUrl}
+                alt={post.title}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 768px"
+              />
             </div>
           )}
         </header>
@@ -75,7 +93,7 @@ export default async function PostPage({ params }: { params: { slug: string } })
           <div className="mt-8 p-6 bg-gray-50 rounded-lg">
             <h3 className="text-lg font-semibold mb-4">Attachments</h3>
             <div className="space-y-2">
-              {post.attachments.map((attachment, index) => (
+              {post.attachments.map((attachment: Attachment, index: number) => (
                 <a
                   key={index}
                   href={attachment.url}

@@ -39,63 +39,70 @@ export default function LatestPosts({ posts }: LatestPostsProps) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {posts.map((post, index) => (
-            <article
-              key={post.id}
-              className={`group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden hover:-translate-y-2 border border-gray-100 ${
-                index === 0 ? "md:col-span-2 lg:col-span-1" : ""
-              }`}
-            >
-              {post.image && (
+          {posts.map((post, index) => {
+            const imageUrl = post.image
+              ? post.image.startsWith("http") || post.image.startsWith("/")
+                ? post.image
+                : `/${post.image}`
+              : "/placeholder.svg"
+
+            return (
+              <article
+                key={post.id}
+                className={`group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden hover:-translate-y-2 border border-gray-100 ${
+                  index === 0 ? "md:col-span-2 lg:col-span-1" : ""
+                }`}
+              >
                 <div className="relative h-48 lg:h-56 overflow-hidden">
                   <Image
-                    src={post.image || "/placeholder.svg"}
+                    src={imageUrl}
                     alt={post.title}
                     fill
                     className="object-cover group-hover:scale-110 transition-transform duration-500"
+                    sizes="(max-width: 768px) 100vw, 768px"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </div>
-              )}
 
-              <div className="p-8">
-                <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
-                  <div className="flex items-center">
-                    <Tag className="h-4 w-4 mr-1" />
-                    <span className="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-xs font-medium">
-                      {post.category}
-                    </span>
-                  </div>
-                  <div className="flex items-center">
-                    <Calendar className="h-4 w-4 mr-1" />
-                    {formatDate(post.date)}
-                  </div>
-                </div>
-
-                <h3 className="text-xl lg:text-2xl font-bold mb-4 line-clamp-2 group-hover:text-emerald-600 transition-colors duration-300">
-                  {post.title}
-                </h3>
-
-                <p className="text-gray-600 mb-6 line-clamp-3 leading-relaxed">{post.summary}</p>
-
-                <div className="flex items-center justify-between">
-                  {post.author && (
-                    <div className="flex items-center text-sm text-gray-500">
-                      <User className="h-4 w-4 mr-1" />
-                      {post.author}
+                <div className="p-8">
+                  <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
+                    <div className="flex items-center">
+                      <Tag className="h-4 w-4 mr-1" />
+                      <span className="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-xs font-medium">
+                        {post.category}
+                      </span>
                     </div>
-                  )}
-                  <Link
-                    href={`/media/${post.slug}`}
-                    className="group/link inline-flex items-center text-emerald-600 hover:text-emerald-800 font-semibold transition-colors duration-300"
-                  >
-                    Read More
-                    <ArrowRight className="ml-2 h-4 w-4 group-hover/link:translate-x-1 transition-transform duration-300" />
-                  </Link>
+                    <div className="flex items-center">
+                      <Calendar className="h-4 w-4 mr-1" />
+                      {formatDate(post.date)}
+                    </div>
+                  </div>
+
+                  <h3 className="text-xl lg:text-2xl font-bold mb-4 line-clamp-2 group-hover:text-emerald-600 transition-colors duration-300">
+                    {post.title}
+                  </h3>
+
+                  <p className="text-gray-600 mb-6 line-clamp-3 leading-relaxed">{post.summary}</p>
+
+                  <div className="flex items-center justify-between">
+                    {post.author && (
+                      <div className="flex items-center text-sm text-gray-500">
+                        <User className="h-4 w-4 mr-1" />
+                        {post.author}
+                      </div>
+                    )}
+                    <Link
+                      href={`/media/${post.slug}`}
+                      className="group/link inline-flex items-center text-emerald-600 hover:text-emerald-800 font-semibold transition-colors duration-300"
+                    >
+                      Read More
+                      <ArrowRight className="ml-2 h-4 w-4 group-hover/link:translate-x-1 transition-transform duration-300" />
+                    </Link>
+                  </div>
                 </div>
-              </div>
-            </article>
-          ))}
+              </article>
+            )
+          })}
         </div>
 
         <div className="text-center mt-12 md:hidden">

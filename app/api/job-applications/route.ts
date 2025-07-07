@@ -1,14 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { writeFileSync, readFileSync, existsSync, mkdirSync } from "fs"
-import { join } from "path"
-
-const applicationsFile = join(process.cwd(), "data", "applications.json")
-
-// Ensure data directory exists
-const dataDir = join(process.cwd(), "data")
-if (!existsSync(dataDir)) {
-  mkdirSync(dataDir, { recursive: true })
-}
+import { supabaseAdmin } from "@/lib/supabase"
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,30 +12,33 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
-    // Read existing applications
-    let applications = []
-    if (existsSync(applicationsFile)) {
-      const data = readFileSync(applicationsFile, "utf8")
-      applications = JSON.parse(data)
-    }
+    const { data, error } = await supabaseAdmin
+      .from("job_applications")
+      .insert([
+        {
+          job_id: jobId,
+          job_title: jobTitle,
+          first_name: firstName,
+          last_name: lastName,
+          email,
+          phone,
+          cover_letter: coverLetter,
+          experience: applicationData.experience,
+          linkedin_url: applicationData.linkedinUrl,
+          portfolio_url: applicationData.portfolioUrl,
+          cv_url: cvUrl,
+          status: "pending",
+        },
+      ])
+      .select()
+      .single()
 
-    // Create new application
-    const newApplication = {
-      id: Date.now().toString(),
-      ...applicationData,
-      submittedAt: new Date().toISOString(),
-      status: "pending", // pending, reviewed, shortlisted, rejected, hired
-    }
-
-    applications.unshift(newApplication)
-
-    // Save applications
-    writeFileSync(applicationsFile, JSON.stringify(applications, null, 2))
+    if (error) throw error
 
     return NextResponse.json({
       success: true,
       message: "Application submitted successfully",
-      applicationId: newApplication.id,
+      applicationId: data.id,
     })
   } catch (error) {
     console.error("Error saving application:", error)
@@ -54,14 +48,16 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
   try {
-    if (!existsSync(applicationsFile)) {
-      return NextResponse.json([])
-    }
+    const { data, error } = await supabaseAdmin
+      .from("job_applications")
+      .select("*")
+      .order("created_at", { ascending: false })
 
-    const data = readFileSync(applicationsFile, "utf8")
-    const applications = JSON.parse(data)
-    return NextResponse.json(applications)
+    if (error) throw error
+
+    return NextResponse.json(data || [])
   } catch (error) {
+    console.error("Error fetching applications:", error)
     return NextResponse.json({ error: "Failed to fetch applications" }, { status: 500 })
   }
 }

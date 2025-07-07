@@ -8,19 +8,19 @@ import { Eye, Download, Mail, Phone, Calendar, User, Briefcase } from "lucide-re
 
 interface GeneralApplication {
   id: string
-  firstName: string
-  lastName: string
+  first_name: string
+  last_name: string
   email: string
   phone: string
-  currentRole?: string
+  current_role?: string
   experience?: string
-  interestedRoles?: string
-  availabilityDate?: string
-  linkedinUrl?: string
-  portfolioUrl?: string
-  additionalInfo?: string
-  cvUrl: string
-  submittedAt: string
+  interested_roles?: string
+  availability_date?: string
+  linkedin_url?: string
+  portfolio_url?: string
+  additional_info?: string
+  cv_url: string
+  created_at: string
   status: "pending" | "reviewed" | "contacted" | "archived"
   type: "general"
 }
@@ -87,9 +87,9 @@ export default function GeneralApplicationManager() {
             <div className="flex justify-between items-start">
               <div>
                 <CardTitle className="text-xl">
-                  {selectedApplication.firstName} {selectedApplication.lastName}
+                  {selectedApplication.first_name} {selectedApplication.last_name}
                 </CardTitle>
-                <p className="text-gray-600">{selectedApplication.currentRole || "General Application"}</p>
+                <p className="text-gray-600">{selectedApplication.current_role || "General Application"}</p>
               </div>
               <div className="flex gap-2">
                 <Badge className={getStatusColor(selectedApplication.status)}>{selectedApplication.status}</Badge>
@@ -120,12 +120,12 @@ export default function GeneralApplicationManager() {
 
             {/* Professional Info */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {selectedApplication.currentRole && (
+              {selectedApplication.current_role && (
                 <div className="flex items-center">
                   <Briefcase className="h-5 w-5 text-gray-400 mr-3" />
                   <div>
                     <p className="text-sm text-gray-500">Current Role</p>
-                    <p className="font-medium">{selectedApplication.currentRole}</p>
+                    <p className="font-medium">{selectedApplication.current_role}</p>
                   </div>
                 </div>
               )}
@@ -141,40 +141,40 @@ export default function GeneralApplicationManager() {
             </div>
 
             {/* Interested Roles */}
-            {selectedApplication.interestedRoles && (
+            {selectedApplication.interested_roles && (
               <div>
                 <h3 className="font-semibold mb-2">Interested Roles</h3>
                 <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-gray-700">{selectedApplication.interestedRoles}</p>
+                  <p className="text-gray-700">{selectedApplication.interested_roles}</p>
                 </div>
               </div>
             )}
 
             {/* Additional Information */}
-            {selectedApplication.additionalInfo && (
+            {selectedApplication.additional_info && (
               <div>
                 <h3 className="font-semibold mb-2">Additional Information</h3>
                 <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-gray-700 whitespace-pre-wrap">{selectedApplication.additionalInfo}</p>
+                  <p className="text-gray-700 whitespace-pre-wrap">{selectedApplication.additional_info}</p>
                 </div>
               </div>
             )}
 
             {/* Availability */}
-            {selectedApplication.availabilityDate && (
+            {selectedApplication.availability_date && (
               <div>
                 <h3 className="font-semibold mb-2">Availability</h3>
-                <p className="text-gray-700">{selectedApplication.availabilityDate}</p>
+                <p className="text-gray-700">{selectedApplication.availability_date}</p>
               </div>
             )}
 
             {/* Links */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {selectedApplication.linkedinUrl && (
+              {selectedApplication.linkedin_url && (
                 <div>
                   <p className="text-sm text-gray-500 mb-1">LinkedIn</p>
                   <a
-                    href={selectedApplication.linkedinUrl}
+                    href={selectedApplication.linkedin_url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-600 hover:underline"
@@ -183,11 +183,11 @@ export default function GeneralApplicationManager() {
                   </a>
                 </div>
               )}
-              {selectedApplication.portfolioUrl && (
+              {selectedApplication.portfolio_url && (
                 <div>
                   <p className="text-sm text-gray-500 mb-1">Portfolio</p>
                   <a
-                    href={selectedApplication.portfolioUrl}
+                    href={selectedApplication.portfolio_url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-600 hover:underline"
@@ -201,7 +201,7 @@ export default function GeneralApplicationManager() {
             {/* CV Download */}
             <div>
               <Button asChild>
-                <a href={selectedApplication.cvUrl} download>
+                <a href={selectedApplication.cv_url} download>
                   <Download className="h-4 w-4 mr-2" />
                   Download CV
                 </a>
@@ -235,13 +235,13 @@ export default function GeneralApplicationManager() {
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className="font-semibold text-lg">
-                        {application.firstName} {application.lastName}
+                        {application.first_name} {application.last_name}
                       </h3>
                       <Badge className={getStatusColor(application.status)}>{application.status}</Badge>
                     </div>
 
                     <p className="text-purple-600 font-medium mb-3">
-                      {application.currentRole || "General Application"}
+                      {application.current_role || "General Application"}
                     </p>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
@@ -255,14 +255,14 @@ export default function GeneralApplicationManager() {
                       </div>
                       <div className="flex items-center">
                         <Calendar className="h-4 w-4 mr-2" />
-                        {new Date(application.submittedAt).toLocaleDateString()}
+                        {new Date(application.created_at).toLocaleDateString()}
                       </div>
                     </div>
 
-                    {application.interestedRoles && (
+                    {application.interested_roles && (
                       <div className="mt-3">
                         <p className="text-sm text-gray-600">
-                          <strong>Interested in:</strong> {application.interestedRoles}
+                          <strong>Interested in:</strong> {application.interested_roles}
                         </p>
                       </div>
                     )}
@@ -274,7 +274,7 @@ export default function GeneralApplicationManager() {
                       View
                     </Button>
                     <Button variant="outline" size="sm" asChild>
-                      <a href={application.cvUrl} download>
+                      <a href={application.cv_url} download>
                         <Download className="h-4 w-4" />
                       </a>
                     </Button>

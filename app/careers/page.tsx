@@ -39,7 +39,6 @@ export default async function CareersPage() {
     "📚 Professional development budget",
     "💻 Latest technology and equipment",
     "🍕 Free meals and snacks",
-    "🏋️ Gym membership reimbursement",
     "🚗 Transportation allowance",
     "🎉 Team building events",
   ]
@@ -160,7 +159,7 @@ export default async function CareersPage() {
         <h2 className="text-4xl font-bold mb-8">Our Culture</h2>
         <div className="space-y-6">
           <p className="text-lg text-emerald-100 leading-relaxed">
-            At ABC Company, we foster a culture of innovation, collaboration, and continuous learning. Our team is
+            At Swastik Holding Public LTD, we foster a culture of innovation, collaboration, and continuous learning. Our team is
             our greatest asset, and we're committed to creating an environment where everyone can thrive.
           </p>
           <p className="text-lg text-emerald-100 leading-relaxed">
@@ -178,7 +177,7 @@ export default async function CareersPage() {
       <div className="relative">
         <div className="relative h-96 rounded-2xl overflow-hidden shadow-2xl">
           <img
-            src="/placeholder.svg?height=400&width=600"
+            src="/swastikW.jpg?height=400&width=600"
             alt="Team collaboration"
             className="w-full h-full object-cover"
           />

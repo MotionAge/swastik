@@ -1,24 +1,35 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { writeFileSync, readFileSync, existsSync } from "fs"
-import { join } from "path"
-
-const galleryFile = join(process.cwd(), "data", "gallery.json")
+import { supabaseAdmin } from "@/lib/supabase"
 
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    if (!existsSync(galleryFile)) {
-      return NextResponse.json({ error: "Gallery file not found" }, { status: 404 })
-    }
+    const { error } = await supabaseAdmin.from("gallery_items").delete().eq("id", params.id)
 
-    const data = readFileSync(galleryFile, "utf8")
-    let images = JSON.parse(data)
-
-    images = images.filter((image: any) => image.id !== params.id)
-
-    writeFileSync(galleryFile, JSON.stringify(images, null, 2))
+    if (error) throw error
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    return NextResponse.json({ error: "Failed to delete image" }, { status: 500 })
+    console.error("Error deleting gallery item:", error)
+    return NextResponse.json({ error: "Failed to delete gallery item" }, { status: 500 })
+  }
+}
+
+export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    const { alt, caption } = await request.json()
+
+    const { data, error } = await supabaseAdmin
+      .from("gallery_items")
+      .update({ alt_text: alt, caption })
+      .eq("id", params.id)
+      .select()
+      .single()
+
+    if (error) throw error
+
+    return NextResponse.json(data)
+  } catch (error) {
+    console.error("Error updating gallery item:", error)
+    return NextResponse.json({ error: "Failed to update gallery item" }, { status: 500 })
   }
 }

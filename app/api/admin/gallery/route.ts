@@ -1,49 +1,46 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { writeFileSync, readFileSync, existsSync } from "fs"
-import { join } from "path"
-
-const galleryFile = join(process.cwd(), "data", "gallery.json")
+import { supabaseAdmin } from "@/lib/supabase"
 
 export async function GET() {
   try {
-    if (!existsSync(galleryFile)) {
-      return NextResponse.json([])
-    }
+    const { data, error } = await supabaseAdmin
+      .from("gallery_items")
+      .select("*")
+      .order("created_at", { ascending: false })
 
-    const data = readFileSync(galleryFile, "utf8")
-    const images = JSON.parse(data)
-    return NextResponse.json(images)
+    if (error) throw error
+
+    return NextResponse.json(data || [])
   } catch (error) {
-    return NextResponse.json({ error: "Failed to fetch gallery images" }, { status: 500 })
+    console.error("Error fetching gallery items:", error)
+    return NextResponse.json({ error: "Failed to fetch gallery items" }, { status: 500 })
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const { url, alt, caption } = await request.json()
+    const { url, alt, caption, file_type, file_size, duration } = await request.json()
 
-    // Read existing images
-    let images = []
-    if (existsSync(galleryFile)) {
-      const data = readFileSync(galleryFile, "utf8")
-      images = JSON.parse(data)
-    }
+    const { data, error } = await supabaseAdmin
+      .from("gallery_items")
+      .insert([
+        {
+          url,
+          alt_text: alt,
+          caption,
+          file_type: file_type || "image",
+          file_size,
+          duration,
+        },
+      ])
+      .select()
+      .single()
 
-    // Create new image
-    const newImage = {
-      id: Date.now().toString(),
-      url,
-      alt,
-      caption,
-    }
+    if (error) throw error
 
-    images.unshift(newImage)
-
-    // Save images
-    writeFileSync(galleryFile, JSON.stringify(images, null, 2))
-
-    return NextResponse.json(newImage)
+    return NextResponse.json(data)
   } catch (error) {
-    return NextResponse.json({ error: "Failed to add image" }, { status: 500 })
+    console.error("Error adding gallery item:", error)
+    return NextResponse.json({ error: "Failed to add gallery item" }, { status: 500 })
   }
 }

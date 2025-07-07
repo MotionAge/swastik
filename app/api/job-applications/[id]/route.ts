@@ -1,31 +1,22 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { writeFileSync, readFileSync, existsSync } from "fs"
-import { join } from "path"
-
-const applicationsFile = join(process.cwd(), "data", "applications.json")
+import { supabaseAdmin } from "@/lib/supabase"
 
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const { status } = await request.json()
 
-    if (!existsSync(applicationsFile)) {
-      return NextResponse.json({ error: "Applications file not found" }, { status: 404 })
-    }
+    const { data, error } = await supabaseAdmin
+      .from("job_applications")
+      .update({ status })
+      .eq("id", params.id)
+      .select()
+      .single()
 
-    const data = readFileSync(applicationsFile, "utf8")
-    const applications = JSON.parse(data)
+    if (error) throw error
 
-    const applicationIndex = applications.findIndex((app: any) => app.id === params.id)
-    if (applicationIndex === -1) {
-      return NextResponse.json({ error: "Application not found" }, { status: 404 })
-    }
-
-    applications[applicationIndex].status = status
-
-    writeFileSync(applicationsFile, JSON.stringify(applications, null, 2))
-
-    return NextResponse.json(applications[applicationIndex])
+    return NextResponse.json(data)
   } catch (error) {
+    console.error("Error updating application:", error)
     return NextResponse.json({ error: "Failed to update application" }, { status: 500 })
   }
 }

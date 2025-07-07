@@ -1,19 +1,18 @@
 import { NextResponse } from "next/server"
-import { readFileSync, existsSync } from "fs"
-import { join } from "path"
-
-const messagesFile = join(process.cwd(), "data", "messages.json")
+import { supabaseAdmin } from "@/lib/supabase"
 
 export async function GET() {
   try {
-    if (!existsSync(messagesFile)) {
-      return NextResponse.json([])
-    }
+    const { data, error } = await supabaseAdmin
+      .from("contact_messages")
+      .select("*")
+      .order("created_at", { ascending: false })
 
-    const data = readFileSync(messagesFile, "utf8")
-    const messages = JSON.parse(data)
-    return NextResponse.json(messages)
+    if (error) throw error
+
+    return NextResponse.json(data || [])
   } catch (error) {
+    console.error("Error fetching messages:", error)
     return NextResponse.json({ error: "Failed to fetch messages" }, { status: 500 })
   }
 }

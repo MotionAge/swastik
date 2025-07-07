@@ -33,9 +33,9 @@ export default function JobApplicationForm({ jobId, jobTitle }: JobApplicationFo
   const uploadCV = async (file: File): Promise<string> => {
     const formData = new FormData()
     formData.append("file", file)
-    formData.append("type", "cv")
+    formData.append("type", "cvs")
 
-    const response = await fetch("/api/admin/upload", {
+    const response = await fetch("/api/upload-blob", {
       method: "POST",
       body: formData,
     })

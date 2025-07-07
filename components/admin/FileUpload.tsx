@@ -4,27 +4,48 @@ import type React from "react"
 
 import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
-import { Upload, X, File } from "lucide-react"
+import { Upload, X, File, ImageIcon, Video } from "lucide-react"
+import { validateFileType, validateFileSize, formatFileSize } from "@/lib/storage"
 
 interface FileUploadProps {
-  onFileSelect: (file: File) => void
+  onFileSelect: (file: File | null) => void
   accept?: string
   maxSize?: number // in MB
-  currentFile?: string
   label?: string
+  multiple?: boolean
 }
 
 export default function FileUpload({
   onFileSelect,
-  accept = "image/*",
-  maxSize = 5,
-  currentFile,
+  accept = "*/*",
+  maxSize = 10,
   label = "Upload File",
+  multiple = false,
 }: FileUploadProps) {
-  const [dragActive, setDragActive] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [preview, setPreview] = useState<string | null>(currentFile || null)
+  const [dragActive, setDragActive] = useState(false)
+  const [error, setError] = useState<string>("")
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleFileSelect = (file: File) => {
+    setError("")
+
+    // Validate file type
+    const allowedTypes = accept.split(",").map((type) => type.trim())
+    if (accept !== "*/*" && !validateFileType(file, allowedTypes)) {
+      setError(`File type not allowed. Accepted types: ${accept}`)
+      return
+    }
+
+    // Validate file size
+    if (!validateFileSize(file, maxSize)) {
+      setError(`File size too large. Maximum size: ${maxSize}MB`)
+      return
+    }
+
+    setSelectedFile(file)
+    onFileSelect(file)
+  }
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault()
@@ -46,100 +67,85 @@ export default function FileUpload({
     }
   }
 
-  const handleFileSelect = (file: File) => {
-    // Check file size
-    if (file.size > maxSize * 1024 * 1024) {
-      alert(`File size must be less than ${maxSize}MB`)
-      return
-    }
-
-    setSelectedFile(file)
-    onFileSelect(file)
-
-    // Create preview for images
-    if (file.type.startsWith("image/")) {
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        setPreview(e.target?.result as string)
-      }
-      reader.readAsDataURL(file)
-    } else {
-      setPreview(null)
-    }
-  }
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       handleFileSelect(e.target.files[0])
     }
   }
 
-  const clearFile = () => {
+  const removeFile = () => {
     setSelectedFile(null)
-    setPreview(null)
+    onFileSelect(null)
     if (fileInputRef.current) {
       fileInputRef.current.value = ""
     }
+  }
+
+  const getFileIcon = (file: File) => {
+    if (file.type.startsWith("image/")) return <ImageIcon className="h-8 w-8 text-blue-500" />
+    if (file.type.startsWith("video/")) return <Video className="h-8 w-8 text-purple-500" />
+    return <File className="h-8 w-8 text-gray-500" />
   }
 
   return (
     <div className="space-y-4">
       <label className="block text-sm font-medium text-gray-700">{label}</label>
 
-      <div
-        className={`relative border-2 border-dashed rounded-lg p-6 transition-colors ${
-          dragActive ? "border-blue-500 bg-blue-50" : "border-gray-300 hover:border-gray-400"
-        }`}
-        onDragEnter={handleDrag}
-        onDragLeave={handleDrag}
-        onDragOver={handleDrag}
-        onDrop={handleDrop}
-      >
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept={accept}
-          onChange={handleInputChange}
-          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-        />
+      {!selectedFile ? (
+        <div
+          className={`relative border-2 border-dashed rounded-lg p-6 transition-colors ${
+            dragActive ? "border-blue-400 bg-blue-50" : "border-gray-300 hover:border-gray-400"
+          }`}
+          onDragEnter={handleDrag}
+          onDragLeave={handleDrag}
+          onDragOver={handleDrag}
+          onDrop={handleDrop}
+        >
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept={accept}
+            onChange={handleInputChange}
+            multiple={multiple}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+          />
 
-        {selectedFile || preview ? (
-          <div className="space-y-4">
-            {preview && accept.includes("image") ? (
-              <div className="relative">
-                <img src={preview || "/placeholder.svg"} alt="Preview" className="max-h-48 mx-auto rounded-lg" />
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="sm"
-                  className="absolute top-2 right-2"
-                  onClick={clearFile}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            ) : (
-              <div className="flex items-center justify-center space-x-2">
-                <File className="h-8 w-8 text-gray-400" />
-                <span className="text-sm text-gray-600">{selectedFile?.name || "Current file"}</span>
-                <Button type="button" variant="outline" size="sm" onClick={clearFile}>
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
-          </div>
-        ) : (
           <div className="text-center">
             <Upload className="mx-auto h-12 w-12 text-gray-400" />
             <div className="mt-4">
               <p className="text-sm text-gray-600">
                 <span className="font-medium text-blue-600 hover:text-blue-500">Click to upload</span> or drag and drop
               </p>
-              <p className="text-xs text-gray-500 mt-1">Max file size: {maxSize}MB</p>
+              <p className="text-xs text-gray-500 mt-1">
+                {accept === "*/*" ? "Any file type" : accept} up to {maxSize}MB
+              </p>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="border rounded-lg p-4 bg-gray-50">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              {getFileIcon(selectedFile)}
+              <div>
+                <p className="text-sm font-medium text-gray-900">{selectedFile.name}</p>
+                <p className="text-xs text-gray-500">{formatFileSize(selectedFile.size)}</p>
+              </div>
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={removeFile}
+              className="text-red-500 hover:text-red-700"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {error && <p className="text-sm text-red-600">{error}</p>}
     </div>
   )
 }

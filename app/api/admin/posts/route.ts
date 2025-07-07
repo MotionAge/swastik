@@ -1,57 +1,43 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { writeFileSync, readFileSync, existsSync } from "fs"
-import { join } from "path"
-
-const postsFile = join(process.cwd(), "data", "posts.json")
+import { supabaseAdmin } from "@/lib/supabase"
 
 export async function GET() {
   try {
-    if (!existsSync(postsFile)) {
-      return NextResponse.json([])
-    }
+    const { data, error } = await supabaseAdmin.from("posts").select("*").order("created_at", { ascending: false })
 
-    const data = readFileSync(postsFile, "utf8")
-    const posts = JSON.parse(data)
-    return NextResponse.json(posts)
+    if (error) throw error
+
+    return NextResponse.json(data || [])
   } catch (error) {
+    console.error("Error fetching posts:", error)
     return NextResponse.json({ error: "Failed to fetch posts" }, { status: 500 })
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const { title, summary, content, image, category, author } = await request.json()
+    const { title, summary, content, image_url, category, author } = await request.json()
 
-    // Read existing posts
-    let posts = []
-    if (existsSync(postsFile)) {
-      const data = readFileSync(postsFile, "utf8")
-      posts = JSON.parse(data)
-    }
-
-    // Create new post
-    const newPost = {
-      id: Date.now().toString(),
+    const postData = {
       title,
       summary,
       content,
-      image,
+      image_url,
       category,
       author,
-      date: new Date().toISOString(),
       slug: title
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/(^-|-$)/g, ""),
     }
 
-    posts.unshift(newPost)
+    const { data, error } = await supabaseAdmin.from("posts").insert([postData]).select().single()
 
-    // Save posts
-    writeFileSync(postsFile, JSON.stringify(posts, null, 2))
+    if (error) throw error
 
-    return NextResponse.json(newPost)
+    return NextResponse.json(data)
   } catch (error) {
+    console.error("Error creating post:", error)
     return NextResponse.json({ error: "Failed to create post" }, { status: 500 })
   }
 }

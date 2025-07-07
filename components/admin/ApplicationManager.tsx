@@ -8,18 +8,18 @@ import { Eye, Download, Mail, Phone, Calendar, Briefcase } from "lucide-react"
 
 interface Application {
   id: string
-  firstName: string
-  lastName: string
+  first_name: string
+  last_name: string
   email: string
   phone: string
-  jobId: string
-  jobTitle: string
-  coverLetter: string
+  job_id: string
+  job_title: string
+  cover_letter: string
   experience?: string
-  linkedinUrl?: string
-  portfolioUrl?: string
-  cvUrl: string
-  submittedAt: string
+  linkedin_url?: string
+  portfolio_url?: string
+  cv_url: string
+  created_at: string
   status: "pending" | "reviewed" | "shortlisted" | "rejected" | "hired"
 }
 
@@ -87,9 +87,9 @@ export default function ApplicationManager() {
             <div className="flex justify-between items-start">
               <div>
                 <CardTitle className="text-xl">
-                  {selectedApplication.firstName} {selectedApplication.lastName}
+                  {selectedApplication.first_name} {selectedApplication.last_name}
                 </CardTitle>
-                <p className="text-gray-600">{selectedApplication.jobTitle}</p>
+                <p className="text-gray-600">{selectedApplication.job_title}</p>
               </div>
               <div className="flex gap-2">
                 <Badge className={getStatusColor(selectedApplication.status)}>{selectedApplication.status}</Badge>
@@ -122,7 +122,7 @@ export default function ApplicationManager() {
             <div>
               <h3 className="font-semibold mb-2">Cover Letter</h3>
               <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-gray-700 whitespace-pre-wrap">{selectedApplication.coverLetter}</p>
+                <p className="text-gray-700 whitespace-pre-wrap">{selectedApplication.cover_letter}</p>
               </div>
             </div>
 
@@ -138,11 +138,11 @@ export default function ApplicationManager() {
 
             {/* Links */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {selectedApplication.linkedinUrl && (
+              {selectedApplication.linkedin_url && (
                 <div>
                   <p className="text-sm text-gray-500 mb-1">LinkedIn</p>
                   <a
-                    href={selectedApplication.linkedinUrl}
+                    href={selectedApplication.linkedin_url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-600 hover:underline"
@@ -151,11 +151,11 @@ export default function ApplicationManager() {
                   </a>
                 </div>
               )}
-              {selectedApplication.portfolioUrl && (
+              {selectedApplication.portfolio_url && (
                 <div>
                   <p className="text-sm text-gray-500 mb-1">Portfolio</p>
                   <a
-                    href={selectedApplication.portfolioUrl}
+                    href={selectedApplication.portfolio_url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-600 hover:underline"
@@ -169,7 +169,7 @@ export default function ApplicationManager() {
             {/* CV Download */}
             <div>
               <Button asChild>
-                <a href={selectedApplication.cvUrl} download>
+                <a href={selectedApplication.cv_url} download>
                   <Download className="h-4 w-4 mr-2" />
                   Download CV
                 </a>
@@ -203,12 +203,12 @@ export default function ApplicationManager() {
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className="font-semibold text-lg">
-                        {application.firstName} {application.lastName}
+                        {application.first_name} {application.last_name}
                       </h3>
                       <Badge className={getStatusColor(application.status)}>{application.status}</Badge>
                     </div>
 
-                    <p className="text-purple-600 font-medium mb-3">{application.jobTitle}</p>
+                    <p className="text-purple-600 font-medium mb-3">{application.job_title}</p>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
                       <div className="flex items-center">
@@ -221,7 +221,7 @@ export default function ApplicationManager() {
                       </div>
                       <div className="flex items-center">
                         <Calendar className="h-4 w-4 mr-2" />
-                        {new Date(application.submittedAt).toLocaleDateString()}
+                        {new Date(application.created_at).toLocaleDateString()}
                       </div>
                     </div>
                   </div>
@@ -232,7 +232,7 @@ export default function ApplicationManager() {
                       View
                     </Button>
                     <Button variant="outline" size="sm" asChild>
-                      <a href={application.cvUrl} download>
+                      <a href={application.cv_url} download>
                         <Download className="h-4 w-4" />
                       </a>
                     </Button>

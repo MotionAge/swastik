@@ -1,18 +1,11 @@
-import { readFileSync, existsSync } from "fs"
-import { join } from "path"
-
-const dataDir = join(process.cwd(), "data")
+import { supabase } from "./supabase"
 
 export async function getAllPosts() {
-  const postsFile = join(dataDir, "posts.json")
-
-  if (!existsSync(postsFile)) {
-    return []
-  }
-
   try {
-    const data = readFileSync(postsFile, "utf8")
-    return JSON.parse(data)
+    const { data, error } = await supabase.from("posts").select("*").order("created_at", { ascending: false })
+
+    if (error) throw error
+    return data || []
   } catch (error) {
     console.error("Error reading posts:", error)
     return []
@@ -20,25 +13,39 @@ export async function getAllPosts() {
 }
 
 export async function getLatestPosts(limit = 3) {
-  const posts = await getAllPosts()
-  return posts.slice(0, limit)
+  try {
+    const { data, error } = await supabase
+      .from("posts")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(limit)
+
+    if (error) throw error
+    return data || []
+  } catch (error) {
+    console.error("Error reading posts:", error)
+    return []
+  }
 }
 
 export async function getPostBySlug(slug: string) {
-  const posts = await getAllPosts()
-  return posts.find((post: any) => post.slug === slug)
+  try {
+    const { data, error } = await supabase.from("posts").select("*").eq("slug", slug).single()
+
+    if (error) return null
+    return data
+  } catch (error) {
+    console.error("Error reading post:", error)
+    return null
+  }
 }
 
 export async function getNotices() {
-  const noticesFile = join(dataDir, "notices.json")
-
-  if (!existsSync(noticesFile)) {
-    return []
-  }
-
   try {
-    const data = readFileSync(noticesFile, "utf8")
-    return JSON.parse(data)
+    const { data, error } = await supabase.from("notices").select("*").order("created_at", { ascending: false })
+
+    if (error) throw error
+    return data || []
   } catch (error) {
     console.error("Error reading notices:", error)
     return []
@@ -46,9 +53,22 @@ export async function getNotices() {
 }
 
 export async function getGalleryImages() {
-  const galleryFile = join(dataDir, "gallery.json")
+  try {
+    const { data, error } = await supabase.from("gallery_images").select("*").order("created_at", { ascending: false })
 
-  if (!existsSync(galleryFile)) {
+    if (error) throw error
+
+    // Transform data to match expected format
+    return (
+      data?.map((img) => ({
+        id: img.id,
+        url: img.url,
+        alt: img.alt_text,
+        caption: img.caption,
+      })) || []
+    )
+  } catch (error) {
+    console.error("Error reading gallery:", error)
     return [
       {
         id: "1",
@@ -70,26 +90,21 @@ export async function getGalleryImages() {
       },
     ]
   }
-
-  try {
-    const data = readFileSync(galleryFile, "utf8")
-    return JSON.parse(data)
-  } catch (error) {
-    console.error("Error reading gallery:", error)
-    return []
-  }
 }
 
 export async function getJobListings() {
-  const jobsFile = join(dataDir, "jobs.json")
-
-  if (!existsSync(jobsFile)) {
-    return []
-  }
-
   try {
-    const data = readFileSync(jobsFile, "utf8")
-    return JSON.parse(data)
+    const { data, error } = await supabase.from("jobs").select("*").order("created_at", { ascending: false })
+
+    if (error) throw error
+
+    // Transform data to match expected format
+    return (
+      data?.map((job) => ({
+        ...job,
+        posted: job.created_at,
+      })) || []
+    )
   } catch (error) {
     console.error("Error reading jobs:", error)
     return []
@@ -101,6 +116,18 @@ export async function getAllJobs() {
 }
 
 export async function getJobById(id: string) {
-  const jobs = await getAllJobs()
-  return jobs.find((job: any) => job.id === id)
+  try {
+    const { data, error } = await supabase.from("jobs").select("*").eq("id", id).single()
+
+    if (error) return null
+
+    // Transform data to match expected format
+    return {
+      ...data,
+      posted: data.created_at,
+    }
+  } catch (error) {
+    console.error("Error reading job:", error)
+    return null
+  }
 }

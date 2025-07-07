@@ -1,24 +1,15 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { writeFileSync, readFileSync, existsSync } from "fs"
-import { join } from "path"
-
-const noticesFile = join(process.cwd(), "data", "notices.json")
+import { supabaseAdmin } from "@/lib/supabase"
 
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    if (!existsSync(noticesFile)) {
-      return NextResponse.json({ error: "Notices file not found" }, { status: 404 })
-    }
+    const { error } = await supabaseAdmin.from("notices").delete().eq("id", params.id)
 
-    const data = readFileSync(noticesFile, "utf8")
-    let notices = JSON.parse(data)
-
-    notices = notices.filter((notice: any) => notice.id !== params.id)
-
-    writeFileSync(noticesFile, JSON.stringify(notices, null, 2))
+    if (error) throw error
 
     return NextResponse.json({ success: true })
   } catch (error) {
+    console.error("Error deleting notice:", error)
     return NextResponse.json({ error: "Failed to delete notice" }, { status: 500 })
   }
 }

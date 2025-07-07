@@ -44,9 +44,9 @@ export default function NoticeManager() {
   const uploadFile = async (file: File): Promise<string> => {
     const formData = new FormData()
     formData.append("file", file)
-    formData.append("type", file.type.includes("pdf") ? "pdf" : "image")
+    formData.append("type", file.type.includes("pdf") ? "notices/pdf" : "notices/images")
 
-    const response = await fetch("/api/admin/upload", {
+    const response = await fetch("/api/upload-blob", {
       method: "POST",
       body: formData,
     })

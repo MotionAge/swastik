@@ -16,7 +16,26 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 
     return NextResponse.json(data)
   } catch (error) {
-    console.error("Error updating application:", error)
+    console.error("Error updating general application:", error)
     return NextResponse.json({ error: "Failed to update application" }, { status: 500 })
+  }
+}
+
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    console.log("Attempting to delete general application with ID:", params.id)
+
+    const { error } = await supabaseAdmin.from("general_applications").delete().eq("id", params.id)
+
+    if (error) {
+      console.error("Error deleting general application:", error)
+      throw error
+    }
+
+    console.log("General application deleted successfully:", params.id)
+    return NextResponse.json({ success: true, message: "Resume submission deleted successfully" })
+  } catch (error) {
+    console.error("Error deleting general application:", error)
+    return NextResponse.json({ error: "Failed to delete resume submission" }, { status: 500 })
   }
 }

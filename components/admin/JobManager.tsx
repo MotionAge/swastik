@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Plus, Edit, Trash2, MapPin, Clock, DollarSign } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 
 interface Job {
   id: string
@@ -18,13 +19,14 @@ interface Job {
   salary?: string
   description: string
   requirements: string[]
-  posted: string
+  created_at: string
 }
 
 export default function JobManager() {
   const [jobs, setJobs] = useState<Job[]>([])
   const [isEditing, setIsEditing] = useState(false)
   const [editingJob, setEditingJob] = useState<Job | null>(null)
+  const [isDeleting, setIsDeleting] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     title: "",
     department: "",
@@ -34,6 +36,7 @@ export default function JobManager() {
     description: "",
     requirements: "",
   })
+  const { toast } = useToast()
 
   useEffect(() => {
     fetchJobs()
@@ -46,6 +49,11 @@ export default function JobManager() {
       setJobs(data)
     } catch (error) {
       console.error("Error fetching jobs:", error)
+      toast({
+        title: "Error",
+        description: "Failed to fetch jobs",
+        variant: "destructive",
+      })
     }
   }
 
@@ -68,11 +76,22 @@ export default function JobManager() {
       })
 
       if (response.ok) {
+        toast({
+          title: "Success",
+          description: editingJob ? "Job updated successfully" : "Job created successfully",
+        })
         fetchJobs()
         resetForm()
+      } else {
+        throw new Error("Failed to save job")
       }
     } catch (error) {
       console.error("Error saving job:", error)
+      toast({
+        title: "Error",
+        description: "Failed to save job",
+        variant: "destructive",
+      })
     }
   }
 
@@ -91,13 +110,40 @@ export default function JobManager() {
   }
 
   const handleDelete = async (id: string) => {
-    if (confirm("Are you sure you want to delete this job posting?")) {
-      try {
-        await fetch(`/api/admin/jobs/${id}`, { method: "DELETE" })
+    if (
+      !confirm(
+        "Are you sure you want to delete this job posting? Applications for this job will be preserved but marked as 'Job Deleted'.",
+      )
+    ) {
+      return
+    }
+
+    setIsDeleting(id)
+    try {
+      const response = await fetch(`/api/admin/jobs/${id}`, {
+        method: "DELETE",
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        toast({
+          title: "Success",
+          description: result.message || "Job posting deleted successfully",
+        })
         fetchJobs()
-      } catch (error) {
-        console.error("Error deleting job:", error)
+      } else {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Failed to delete job")
       }
+    } catch (error) {
+      console.error("Error deleting job:", error)
+      toast({
+        title: "Error",
+        description: "Failed to delete job posting",
+        variant: "destructive",
+      })
+    } finally {
+      setIsDeleting(null)
     }
   }
 
@@ -157,7 +203,7 @@ export default function JobManager() {
                 <select
                   value={formData.type}
                   onChange={(e) => setFormData((prev) => ({ ...prev, type: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="Full-time">Full-time</option>
                   <option value="Part-time">Part-time</option>
@@ -225,21 +271,32 @@ export default function JobManager() {
                     )}
                   </div>
 
-                  <p className="text-gray-700 mb-3">{job.description}</p>
-                  <p className="text-sm text-gray-500">Posted: {new Date(job.posted).toLocaleDateString()}</p>
+                  <p className="text-gray-700 mb-3 line-clamp-2">{job.description}</p>
+                  <p className="text-sm text-gray-500">Posted: {new Date(job.created_at).toLocaleDateString()}</p>
                 </div>
                 <div className="flex gap-2 ml-4">
                   <Button size="sm" variant="outline" onClick={() => handleEdit(job)}>
                     <Edit className="h-4 w-4" />
                   </Button>
-                  <Button size="sm" variant="destructive" onClick={() => handleDelete(job.id)}>
-                    <Trash2 className="h-4 w-4" />
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => handleDelete(job.id)}
+                    disabled={isDeleting === job.id}
+                  >
+                    {isDeleting === job.id ? <span className="animate-spin">⏳</span> : <Trash2 className="h-4 w-4" />}
                   </Button>
                 </div>
               </div>
             </CardContent>
           </Card>
         ))}
+
+        {jobs.length === 0 && (
+          <div className="text-center py-8 text-gray-500">
+            No job postings yet. Create your first job posting to get started!
+          </div>
+        )}
       </div>
     </div>
   )

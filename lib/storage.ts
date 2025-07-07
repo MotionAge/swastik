@@ -22,11 +22,17 @@ export async function uploadToVercelBlob(file: File, type = "general"): Promise<
 // File type validation
 export function validateFileType(file: File, allowedTypes: string[]): boolean {
   return allowedTypes.some((type) => {
-    if (type.includes("*")) {
+    if (type.startsWith(".")) {
+      // Extension check (e.g., .pdf, .doc, .docx)
+      return file.name.toLowerCase().endsWith(type.toLowerCase())
+    } else if (type.includes("*")) {
+      // MIME type with wildcard (e.g., image/*)
       const baseType = type.split("/")[0]
       return file.type.startsWith(baseType)
+    } else {
+      // Exact MIME type match
+      return file.type === type
     }
-    return file.type === type
   })
 }
 

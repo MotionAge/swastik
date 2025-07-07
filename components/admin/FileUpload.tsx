@@ -5,7 +5,7 @@ import type React from "react"
 import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Upload, X, File, ImageIcon, Video } from "lucide-react"
-import { validateFileType, validateFileSize, formatFileSize } from "@/lib/storage"
+import { validateFileSize, formatFileSize } from "@/lib/storage"
 
 interface FileUploadProps {
   onFileSelect: (file: File | null) => void
@@ -13,6 +13,7 @@ interface FileUploadProps {
   maxSize?: number // in MB
   label?: string
   multiple?: boolean
+  currentFile?: string
 }
 
 export default function FileUpload({
@@ -21,6 +22,7 @@ export default function FileUpload({
   maxSize = 10,
   label = "Upload File",
   multiple = false,
+  currentFile,
 }: FileUploadProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [dragActive, setDragActive] = useState(false)
@@ -30,11 +32,29 @@ export default function FileUpload({
   const handleFileSelect = (file: File) => {
     setError("")
 
-    // Validate file type
-    const allowedTypes = accept.split(",").map((type) => type.trim())
-    if (accept !== "*/*" && !validateFileType(file, allowedTypes)) {
-      setError(`File type not allowed. Accepted types: ${accept}`)
-      return
+    // Validate file type if accept is specified
+    if (accept !== "*/*") {
+      const allowedTypes = accept.split(",").map((type) => type.trim())
+
+      // Check if file matches any allowed type
+      const isValidType = allowedTypes.some((type) => {
+        if (type.startsWith(".")) {
+          // Extension check (e.g., .pdf, .doc)
+          return file.name.toLowerCase().endsWith(type.toLowerCase())
+        } else if (type.includes("*")) {
+          // MIME type with wildcard (e.g., image/*)
+          const baseType = type.split("/")[0]
+          return file.type.startsWith(baseType)
+        } else {
+          // Exact MIME type match
+          return file.type === type
+        }
+      })
+
+      if (!isValidType) {
+        setError(`File type not allowed. Accepted types: ${accept}`)
+        return
+      }
     }
 
     // Validate file size
@@ -76,6 +96,7 @@ export default function FileUpload({
   const removeFile = () => {
     setSelectedFile(null)
     onFileSelect(null)
+    setError("")
     if (fileInputRef.current) {
       fileInputRef.current.value = ""
     }
@@ -85,6 +106,23 @@ export default function FileUpload({
     if (file.type.startsWith("image/")) return <ImageIcon className="h-8 w-8 text-blue-500" />
     if (file.type.startsWith("video/")) return <Video className="h-8 w-8 text-purple-500" />
     return <File className="h-8 w-8 text-gray-500" />
+  }
+
+  const getAcceptedFormats = () => {
+    if (accept === "*/*") return "Any file type"
+
+    const formats = accept.split(",").map((type) => type.trim())
+    const displayFormats = formats.map((format) => {
+      if (format.startsWith(".")) {
+        return format.toUpperCase()
+      } else if (format.includes("*")) {
+        const baseType = format.split("/")[0]
+        return baseType.toUpperCase() + " files"
+      }
+      return format
+    })
+
+    return displayFormats.join(", ")
   }
 
   return (
@@ -117,7 +155,7 @@ export default function FileUpload({
                 <span className="font-medium text-blue-600 hover:text-blue-500">Click to upload</span> or drag and drop
               </p>
               <p className="text-xs text-gray-500 mt-1">
-                {accept === "*/*" ? "Any file type" : accept} up to {maxSize}MB
+                {getAcceptedFormats()} up to {maxSize}MB
               </p>
             </div>
           </div>
@@ -141,6 +179,26 @@ export default function FileUpload({
             >
               <X className="h-4 w-4" />
             </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Show current file if exists and no new file selected */}
+      {!selectedFile && currentFile && (
+        <div className="border rounded-lg p-4 bg-blue-50">
+          <div className="flex items-center space-x-3">
+            <File className="h-8 w-8 text-blue-500" />
+            <div>
+              <p className="text-sm font-medium text-gray-900">Current file</p>
+              <a
+                href={currentFile}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-blue-600 hover:underline"
+              >
+                View current file
+              </a>
+            </div>
           </div>
         </div>
       )}

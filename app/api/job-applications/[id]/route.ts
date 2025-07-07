@@ -20,3 +20,22 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     return NextResponse.json({ error: "Failed to update application" }, { status: 500 })
   }
 }
+
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    console.log("Attempting to delete job application with ID:", params.id)
+
+    const { error } = await supabaseAdmin.from("job_applications").delete().eq("id", params.id)
+
+    if (error) {
+      console.error("Error deleting job application:", error)
+      throw error
+    }
+
+    console.log("Job application deleted successfully:", params.id)
+    return NextResponse.json({ success: true, message: "Application deleted successfully" })
+  } catch (error) {
+    console.error("Error deleting job application:", error)
+    return NextResponse.json({ error: "Failed to delete application" }, { status: 500 })
+  }
+}

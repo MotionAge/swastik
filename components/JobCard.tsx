@@ -10,7 +10,7 @@ interface Job {
   salary?: string
   description: string
   requirements: string[]
-  posted: string
+  created_at: string
 }
 
 interface JobCardProps {
@@ -68,7 +68,7 @@ export default function JobCard({ job }: JobCardProps) {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pt-6 border-t border-gray-100">
           <div className="flex items-center text-sm text-gray-500 mb-4 sm:mb-0">
             <Calendar className="h-4 w-4 mr-1" />
-            Posted {new Date(job.posted).toLocaleDateString()}
+            Posted {new Date(job.created_at).toLocaleDateString()}
           </div>
           <div className="flex gap-3">
             <Link href={`/careers/${job.id}`}>

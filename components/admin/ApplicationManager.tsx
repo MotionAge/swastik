@@ -4,7 +4,8 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Eye, Download, Mail, Phone, Calendar, Briefcase } from "lucide-react"
+import { Eye, Download, Mail, Phone, Calendar, Briefcase, Trash2 } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 
 interface Application {
   id: string
@@ -12,7 +13,7 @@ interface Application {
   last_name: string
   email: string
   phone: string
-  job_id: string
+  job_id: string | null
   job_title: string
   cover_letter: string
   experience?: string
@@ -26,6 +27,8 @@ interface Application {
 export default function ApplicationManager() {
   const [applications, setApplications] = useState<Application[]>([])
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null)
+  const [isDeleting, setIsDeleting] = useState<string | null>(null)
+  const { toast } = useToast()
 
   useEffect(() => {
     fetchApplications()
@@ -38,6 +41,11 @@ export default function ApplicationManager() {
       setApplications(data)
     } catch (error) {
       console.error("Error fetching applications:", error)
+      toast({
+        title: "Error",
+        description: "Failed to fetch applications",
+        variant: "destructive",
+      })
     }
   }
 
@@ -50,10 +58,102 @@ export default function ApplicationManager() {
       })
 
       if (response.ok) {
+        toast({
+          title: "Success",
+          description: "Application status updated successfully",
+        })
         fetchApplications()
+        // Update selected application if it's the one being updated
+        if (selectedApplication?.id === id) {
+          setSelectedApplication({ ...selectedApplication, status: status as any })
+        }
+      } else {
+        throw new Error("Failed to update status")
       }
     } catch (error) {
       console.error("Error updating application:", error)
+      toast({
+        title: "Error",
+        description: "Failed to update application status",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const deleteApplication = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this application? This action cannot be undone.")) {
+      return
+    }
+
+    setIsDeleting(id)
+    try {
+      const response = await fetch(`/api/job-applications/${id}`, {
+        method: "DELETE",
+      })
+
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: "Application deleted successfully",
+        })
+        fetchApplications()
+        // Close detail view if the deleted application was selected
+        if (selectedApplication?.id === id) {
+          setSelectedApplication(null)
+        }
+      } else {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Failed to delete application")
+      }
+    } catch (error) {
+      console.error("Error deleting application:", error)
+      toast({
+        title: "Error",
+        description: "Failed to delete application",
+        variant: "destructive",
+      })
+    } finally {
+      setIsDeleting(null)
+    }
+  }
+
+  const downloadCV = async (cvUrl: string, applicantName: string) => {
+    try {
+      const response = await fetch(cvUrl)
+      const blob = await response.blob()
+
+      // Create a temporary URL for the blob
+      const url = window.URL.createObjectURL(blob)
+
+      // Create a temporary anchor element and trigger download
+      const a = document.createElement("a")
+      a.style.display = "none"
+      a.href = url
+
+      // Extract file extension from URL or default to pdf
+      const urlParts = cvUrl.split(".")
+      const extension = urlParts.length > 1 ? urlParts[urlParts.length - 1].split("?")[0] : "pdf"
+
+      a.download = `${applicantName.replace(/\s+/g, "_")}_CV.${extension}`
+
+      document.body.appendChild(a)
+      a.click()
+
+      // Clean up
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+
+      toast({
+        title: "Success",
+        description: "CV downloaded successfully",
+      })
+    } catch (error) {
+      console.error("Error downloading CV:", error)
+      toast({
+        title: "Error",
+        description: "Failed to download CV",
+        variant: "destructive",
+      })
     }
   }
 
@@ -90,6 +190,9 @@ export default function ApplicationManager() {
                   {selectedApplication.first_name} {selectedApplication.last_name}
                 </CardTitle>
                 <p className="text-gray-600">{selectedApplication.job_title}</p>
+                {selectedApplication.job_title.includes("(Job Deleted)") && (
+                  <p className="text-red-500 text-sm mt-1">⚠️ Original job posting has been deleted</p>
+                )}
               </div>
               <div className="flex gap-2">
                 <Badge className={getStatusColor(selectedApplication.status)}>{selectedApplication.status}</Badge>
@@ -168,11 +271,16 @@ export default function ApplicationManager() {
 
             {/* CV Download */}
             <div>
-              <Button asChild>
-                <a href={selectedApplication.cv_url} download>
-                  <Download className="h-4 w-4 mr-2" />
-                  Download CV
-                </a>
+              <Button
+                onClick={() =>
+                  downloadCV(
+                    selectedApplication.cv_url,
+                    `${selectedApplication.first_name}_${selectedApplication.last_name}`,
+                  )
+                }
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Download CV
               </Button>
             </div>
 
@@ -192,6 +300,28 @@ export default function ApplicationManager() {
                 ))}
               </div>
             </div>
+
+            {/* Delete Application */}
+            <div className="pt-4 border-t border-gray-200">
+              <h3 className="font-semibold mb-2 text-red-600">Danger Zone</h3>
+              <Button
+                variant="destructive"
+                onClick={() => deleteApplication(selectedApplication.id)}
+                disabled={isDeleting === selectedApplication.id}
+              >
+                {isDeleting === selectedApplication.id ? (
+                  <>
+                    <span className="animate-spin mr-2">⏳</span>
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete Application
+                  </>
+                )}
+              </Button>
+            </div>
           </CardContent>
         </Card>
       ) : (
@@ -209,6 +339,9 @@ export default function ApplicationManager() {
                     </div>
 
                     <p className="text-purple-600 font-medium mb-3">{application.job_title}</p>
+                    {application.job_title.includes("(Job Deleted)") && (
+                      <p className="text-red-500 text-sm mb-3">⚠️ Original job posting has been deleted</p>
+                    )}
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
                       <div className="flex items-center">
@@ -231,10 +364,26 @@ export default function ApplicationManager() {
                       <Eye className="h-4 w-4 mr-1" />
                       View
                     </Button>
-                    <Button variant="outline" size="sm" asChild>
-                      <a href={application.cv_url} download>
-                        <Download className="h-4 w-4" />
-                      </a>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        downloadCV(application.cv_url, `${application.first_name}_${application.last_name}`)
+                      }
+                    >
+                      <Download className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => deleteApplication(application.id)}
+                      disabled={isDeleting === application.id}
+                    >
+                      {isDeleting === application.id ? (
+                        <span className="animate-spin">⏳</span>
+                      ) : (
+                        <Trash2 className="h-4 w-4" />
+                      )}
                     </Button>
                   </div>
                 </div>

@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -9,14 +8,15 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Plus, Edit, Trash2 } from "lucide-react"
 import FileUpload from "./FileUpload"
+import { uploadToVercelBlob } from "@/lib/storage"
 
 interface Post {
   id: string
   title: string
   summary: string
   content: string
-  image?: string
-  date: string
+  image_url?: string
+  created_at: string
   slug: string
   category: string
   author: string
@@ -42,7 +42,7 @@ export default function PostManager() {
 
   const fetchPosts = async () => {
     try {
-      const response = await fetch("/api/admin/posts")
+      const response = await fetch("/api/posts")
       const data = await response.json()
       setPosts(data)
     } catch (error) {
@@ -50,37 +50,19 @@ export default function PostManager() {
     }
   }
 
-  const uploadFile = async (file: File): Promise<string> => {
-    const formData = new FormData()
-    formData.append("file", file)
-    formData.append("type", "image")
-
-    const response = await fetch("/api/admin/upload", {
-      method: "POST",
-      body: formData,
-    })
-
-    if (!response.ok) {
-      throw new Error("Failed to upload file")
-    }
-
-    const data = await response.json()
-    return data.url
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsUploading(true)
 
     try {
-      let imageUrl = editingPost?.image || ""
+      let imageUrl = editingPost?.image_url || ""
 
       // Upload image if selected
       if (selectedImage) {
-        imageUrl = await uploadFile(selectedImage)
+        imageUrl = await uploadToVercelBlob(selectedImage, "posts")
       }
 
-      const url = editingPost ? `/api/admin/posts/${editingPost.id}` : "/api/admin/posts"
+      const url = editingPost ? `/api/posts/${editingPost.id}` : "/api/posts"
       const method = editingPost ? "PUT" : "POST"
 
       const response = await fetch(url, {
@@ -88,7 +70,7 @@ export default function PostManager() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
-          image: imageUrl,
+          image_url: imageUrl,
         }),
       })
 
@@ -119,7 +101,7 @@ export default function PostManager() {
   const handleDelete = async (id: string) => {
     if (confirm("Are you sure you want to delete this post?")) {
       try {
-        await fetch(`/api/admin/posts/${id}`, { method: "DELETE" })
+        await fetch(`/api/posts/${id}`, { method: "DELETE" })
         fetchPosts()
       } catch (error) {
         console.error("Error deleting post:", error)
@@ -183,7 +165,7 @@ export default function PostManager() {
                 onFileSelect={setSelectedImage}
                 accept="image/*"
                 maxSize={5}
-                currentFile={editingPost?.image}
+                currentFile={editingPost?.image_url}
                 label="Post Image"
               />
 
@@ -222,7 +204,7 @@ export default function PostManager() {
                   <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
                     <span>{post.category}</span>
                     <span>{post.author}</span>
-                    <span>{new Date(post.date).toLocaleDateString()}</span>
+                    <span>{new Date(post.created_at).toLocaleDateString()}</span>
                   </div>
                 </div>
                 <div className="flex gap-2">

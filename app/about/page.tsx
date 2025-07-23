@@ -76,14 +76,14 @@ export default function AboutPage() {
               About Swastik
             </h1>
             <p className="text-xl md:text-2xl text-lime-100 leading-relaxed">
-              Pioneering innovation and excellence in business solutions since 2008
+              Pioneering innovation and excellence in business solutions
             </p>
           </div>
         </div>
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 bg-white">
+      {/* <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
@@ -97,7 +97,7 @@ export default function AboutPage() {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Mission & Vision */}
       <section className="py-20 bg-gray-50">

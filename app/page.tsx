@@ -13,7 +13,6 @@ export default async function HomePage() {
   return (
     <div className="min-h-screen">
       <Hero />
-
       <Suspense fallback={<div className="animate-pulse h-96 bg-gray-200" />}>
         <Gallery images={galleryImages} />
       </Suspense>

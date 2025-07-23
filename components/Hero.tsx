@@ -35,7 +35,7 @@ export default function Hero() {
           {/* Badge */}
           <div className="mb-8">
             <span className="inline-block px-4 py-2 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-              🚀 Leading Innovation Since 2008
+              🚀 Leading Innovation
             </span>
           </div>
 
@@ -55,7 +55,7 @@ export default function Hero() {
           </p>
 
           {/* CTA Button */}
-          <div className="flex justify-center mb-16">
+          <div className="flex justify-center">
             <Link
               href="/contact"
               className="group inline-flex items-center px-8 py-4 bg-green-600 text-white font-semibold rounded-full hover:bg-green-700 transition-all duration-300 shadow-lg hover:shadow-green-200 hover:scale-105"
@@ -64,9 +64,9 @@ export default function Hero() {
               <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
-
+          
           {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
+          {/* <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
             {[
               { number: "500+", label: "Happy Clients" },
               { number: "15+", label: "Years Experience" },
@@ -81,7 +81,7 @@ export default function Hero() {
                 <div className="text-green-600 text-sm">{stat.label}</div>
               </div>
             ))}
-          </div>
+          </div> */}
         </div>
       </section>
     </>
